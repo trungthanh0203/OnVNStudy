@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { speak } from '@/lib/speech';
+import PracticeExercise from '@/components/PracticeExercise';
 
 export default function LessonPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -149,15 +150,10 @@ export default function LessonPage({ params }: { params: { id: string } }) {
               </div>
             ))}
 
-          {/* Bước 7-8: Luyện tập — CHƯA có UI chấm tự động cho các loại này, làm ở giai đoạn sau */}
+          {/* Bước 7-8: Luyện tập — chấm điểm thật cho 3 loại: viết từ, ghép phiên âm, nối câu hỏi-đáp */}
           <h2>Luyện tập ({practiceItems.length})</h2>
-          <p style={{ color: '#888', fontStyle: 'italic' }}>
-            Phần này hiện chỉ hiển thị đề bài, chưa bấm/chọn làm được — sẽ hoàn thiện dần cho từng loại bài tập.
-          </p>
           {practiceItems.map((e) => (
-            <div key={e.id} style={{ marginBottom: 8, opacity: 0.6 }}>
-              <p>{e.prompt_text}</p>
-            </div>
+            <PracticeExercise key={e.id} exercise={e} studentId={studentId} />
           ))}
 
           {/* Bước 10: Kiểm tra cuối bài — chấm điểm thật + lưu kết quả */}
