@@ -8,6 +8,7 @@ export default function FamilyReportPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [sessionsByStudent, setSessionsByStudent] = useState<Record<string, any[]>>({});
 
@@ -24,7 +25,7 @@ export default function FamilyReportPage() {
       // Tìm gia đình của tài khoản đang đăng nhập (học sinh hoặc phụ huynh đều dùng chung trang này)
       const { data: fm, error: fmErr } = await supabase
         .from('family_members')
-        .select('family_id')
+        .select('family_id, role')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
@@ -33,6 +34,7 @@ export default function FamilyReportPage() {
         setLoading(false);
         return;
       }
+      setRole(fm.role);
 
       const { data: studentRows, error: stErr } = await supabase
         .from('students')
@@ -63,9 +65,17 @@ export default function FamilyReportPage() {
 
   if (loading) return <div style={{ padding: 24 }}>Đang tải...</div>;
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push('/login');
+  }
+
   return (
     <main style={{ maxWidth: 600, margin: '0 auto', padding: 24, fontFamily: 'sans-serif' }}>
-      <a href="/home">← Quay lại</a>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {role === 'student' ? <a href="/home">← Quay lại danh sách bài học</a> : <span />}
+        <button onClick={handleLogout}>Đăng xuất</button>
+      </div>
       <h1>Báo cáo học tập</h1>
       {error && <p style={{ color: '#900' }}>{error}</p>}
       {students.length === 0 && !error && <p>Chưa có học sinh nào trong gia đình.</p>}
