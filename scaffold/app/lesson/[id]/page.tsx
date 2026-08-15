@@ -4,6 +4,7 @@
 // trong file khung-chuong-trinh-tieng-anh-lop1-5.md (mục III).
 
 import { createClient } from '@/lib/supabase';
+import { speak } from '@/lib/speech';
 
 export default async function LessonPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -51,9 +52,7 @@ export default async function LessonPage({ params }: { params: { id: string } })
           <div key={f.id}>
             {f.image_url && <img src={f.image_url} alt={f.term} width={80} />}
             <strong>{f.term}</strong> {f.phonetic} — {f.meaning}
-            {f.audio_url && (
-              <button onClick={() => new Audio(f.audio_url).play()}>🔊</button>
-            )}
+            <button onClick={() => speak(f.term, f.audio_url)}>🔊</button>
           </div>
         ))}
       </section>
@@ -67,9 +66,7 @@ export default async function LessonPage({ params }: { params: { id: string } })
           .map((b) => (
             <p key={b.id}>
               <strong>{b.text_content}</strong> — {b.text_translation}
-              {b.audio_url && (
-                <button onClick={() => new Audio(b.audio_url).play()}>🔊</button>
-              )}
+              <button onClick={() => speak(b.text_content, b.audio_url)}>🔊</button>
             </p>
           ))}
       </section>
@@ -81,7 +78,7 @@ export default async function LessonPage({ params }: { params: { id: string } })
           .map((b) => (
             <div key={b.id}>
               {b.image_url && <img src={b.image_url} width={200} />}
-              <p>{b.text_content}</p>
+              <p>{b.text_content} <button onClick={() => speak(b.text_content, b.audio_url)}>🔊</button></p>
             </div>
           ))}
       </section>
