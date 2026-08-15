@@ -18,6 +18,17 @@ export default function HomePage() {
         router.push('/login');
         return;
       }
+
+      // Phụ huynh không cần (và không nên) vào màn hình học/làm bài — chuyển thẳng sang báo cáo
+      const { data: fm } = await supabase
+        .from('family_members')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      if (fm?.role === 'parent') {
+        router.push('/family-report');
+        return;
+      }
       const { data } = await supabase
         .from('lessons')
         .select('id, title')
