@@ -42,6 +42,9 @@ export default function HomePage() {
         <h1>Các bài học</h1>
         <button onClick={handleLogout}>Đăng xuất</button>
       </div>
+      <p>
+        <a href="/family-report">📊 Xem báo cáo học tập</a>
+      </p>
       {lessons.length === 0 && <p>Chưa có bài học nào được xuất bản.</p>}
       <ul>
         {lessons.map((l) => (
