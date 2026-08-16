@@ -28,6 +28,10 @@ export default function RegisterPage() {
     setLoading(true);
 
     const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password });
+    // In ra console (F12 > Console) để xem nguyên văn phản hồi thật từ Supabase khi cần
+    // tra lỗi kỹ hơn — không hiện cho người dùng thường, chỉ để debug.
+    console.log('supabase.auth.signUp() trả về:', { signUpData, signUpErr });
+
     if (signUpErr) {
       setLoading(false);
       setError(
@@ -37,10 +41,31 @@ export default function RegisterPage() {
       );
       return;
     }
-    if (!signUpData.session || !signUpData.user) {
+    if (!signUpData.user) {
+      setLoading(false);
+      setError('Không tạo được tài khoản (không rõ lý do từ Supabase) — mở Console (F12) xem chi tiết, hoặc thử lại.');
+      return;
+    }
+    // Supabase cố tình trả về "thành công giả" (user có id nhưng identities rỗng, không
+    // có session) khi email đã tồn tại từ trước — kể cả email đó CHƯA xác nhận — để
+    // tránh lộ thông tin email nào đã đăng ký (chống dò email). Đây là nguyên nhân hay
+    // gặp NHẤT khi thử đăng ký lại bằng đúng email đã thử lỗi ở lượt trước.
+    if (signUpData.user.identities && signUpData.user.identities.length === 0) {
       setLoading(false);
       setError(
-        'Đăng ký chưa hoàn tất — hệ thống có thể đang yêu cầu xác nhận qua email. Liên hệ quản trị viên để kiểm tra lại cấu hình Supabase Authentication.'
+        `Email "${email}" đã tồn tại trong hệ thống (có thể do lượt đăng ký thử trước đó chưa xoá hết). ` +
+          'Vào Supabase Dashboard > Authentication > Users, tìm đúng email này và xoá, rồi quay lại đăng ký. ' +
+          'Hoặc nhanh hơn: thử lại bằng 1 email khác, hoàn toàn chưa dùng qua bao giờ.'
+      );
+      return;
+    }
+    if (!signUpData.session) {
+      setLoading(false);
+      setError(
+        'Tài khoản Auth đã tạo nhưng chưa có phiên đăng nhập ngay — kiểm tra lại đã tắt "Confirm email" trong ' +
+          'Supabase Dashboard > Authentication > Providers (hoặc Sign In / Providers) > Email chưa. Sau khi tắt, ' +
+          'nhớ thử lại bằng 1 email HOÀN TOÀN MỚI (email vừa thử ở đây có thể đã bị đánh dấu "chờ xác nhận" từ ' +
+          'trước khi bạn tắt cấu hình, cần xoá trong Authentication > Users trước khi dùng lại).'
       );
       return;
     }
