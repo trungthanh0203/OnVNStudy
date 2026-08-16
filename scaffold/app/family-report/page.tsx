@@ -77,6 +77,11 @@ export default function FamilyReportPage() {
         <button onClick={handleLogout}>Đăng xuất</button>
       </div>
       <h1>Báo cáo học tập</h1>
+      {role === 'parent' && (
+        <p>
+          <a href="/add-child">➕ Thêm học sinh</a>
+        </p>
+      )}
       {error && <p style={{ color: '#900' }}>{error}</p>}
       {students.length === 0 && !error && <p>Chưa có học sinh nào trong gia đình.</p>}
       {students.map((s) => (
