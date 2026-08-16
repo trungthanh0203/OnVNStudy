@@ -16,6 +16,8 @@ export default function LessonPage({ params }: { params: { id: string } }) {
   const [flashcards, setFlashcards] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [exercises, setExercises] = useState<any[]>([]);
+  // Thẻ ghi nhớ đã gán riêng cho từng bài tập kiểu "ghép thẻ" (flashcard_match), map theo exercise_id.
+  const [exerciseFlashcards, setExerciseFlashcards] = useState<Record<string, any[]>>({});
 
   // Trạng thái làm bài kiểm tra cuối bài
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -47,12 +49,36 @@ export default function LessonPage({ params }: { params: { id: string } }) {
       const errors = [lessonRes, flashRes, blockRes, exRes]
         .map((r, i) => (r.error ? `[${['lessons', 'flashcard_items', 'content_blocks', 'exercises'][i]}] ${r.error.message}` : null))
         .filter(Boolean);
-      if (errors.length > 0) setLoadError(errors.join(' | '));
 
       setLesson(lessonRes.data);
       setFlashcards(flashRes.data || []);
       setBlocks(blockRes.data || []);
       setExercises(exRes.data || []);
+
+      // Với bài tập kiểu "ghép thẻ" (flashcard_match), cần lấy thêm danh sách thẻ đã được gán
+      // qua bảng exercise_flashcard_refs — tách thành truy vấn riêng vì phải biết id các exercise trước.
+      const flashcardMatchIds = (exRes.data || [])
+        .filter((e: any) => e.type === 'flashcard_match')
+        .map((e: any) => e.id);
+      if (flashcardMatchIds.length > 0) {
+        const { data: refs, error: refErr } = await supabase
+          .from('exercise_flashcard_refs')
+          .select('exercise_id, order_index, flashcard_items(id, term, meaning)')
+          .in('exercise_id', flashcardMatchIds)
+          .order('order_index');
+        if (refErr) {
+          errors.push(`[exercise_flashcard_refs] ${refErr.message}`);
+        } else {
+          const map: Record<string, any[]> = {};
+          for (const r of refs || []) {
+            const list = map[r.exercise_id] || (map[r.exercise_id] = []);
+            if (r.flashcard_items) list.push(r.flashcard_items);
+          }
+          setExerciseFlashcards(map);
+        }
+      }
+
+      if (errors.length > 0) setLoadError(errors.join(' | '));
       setLoading(false);
     }
     load();
@@ -150,10 +176,16 @@ export default function LessonPage({ params }: { params: { id: string } }) {
               </div>
             ))}
 
-          {/* Bước 7-8: Luyện tập — chấm điểm thật cho 3 loại: viết từ, ghép phiên âm, nối câu hỏi-đáp */}
+          {/* Bước 7-8: Luyện tập — chấm điểm thật cho 7 loại bài tập (xem PracticeExercise.tsx) */}
           <h2>Luyện tập ({practiceItems.length})</h2>
           {practiceItems.map((e) => (
-            <PracticeExercise key={e.id} exercise={e} studentId={studentId} />
+            <PracticeExercise
+              key={e.id}
+              exercise={e}
+              studentId={studentId}
+              refFlashcards={exerciseFlashcards[e.id] || []}
+              lessonFlashcards={flashcards}
+            />
           ))}
 
           {/* Bước 10: Kiểm tra cuối bài — chấm điểm thật + lưu kết quả */}
