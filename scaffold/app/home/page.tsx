@@ -29,11 +29,18 @@ export default function HomePage() {
         router.push('/family-report');
         return;
       }
-      const { data } = await supabase
+
+      // Sắp xếp đúng thứ tự chương trình: theo Chủ đề trước (topics.order_index — Chủ đề 1, 2, 3...),
+      // rồi mới đến Bài trong Chủ đề đó (lessons.order_index — Bài 1, Bài 2...).
+      // Trước đây chỉ sắp theo lessons.order_index — mà mỗi chủ đề hiện chỉ có 1 bài (order_index = 1
+      // cho tất cả), nên các chủ đề bị xếp lộn xộn theo thứ tự nạp dữ liệu chứ không theo đúng chương trình.
+      const { data, error } = await supabase
         .from('lessons')
-        .select('id, title')
+        .select('id, title, order_index, topics(order_index)')
         .eq('status', 'published')
+        .order('order_index', { foreignTable: 'topics' })
         .order('order_index');
+      if (error) console.error('Lỗi khi tải danh sách bài học:', error.message);
       setLessons(data || []);
       setLoading(false);
     }
