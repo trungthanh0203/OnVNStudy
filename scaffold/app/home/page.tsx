@@ -19,6 +19,17 @@ export default function HomePage() {
         return;
       }
 
+      // Admin không học/làm bài — chuyển thẳng sang trang quản trị.
+      const { data: staff } = await supabase
+        .from('staff')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (staff?.role === 'admin') {
+        router.push('/admin');
+        return;
+      }
+
       // Phụ huynh không cần (và không nên) vào màn hình học/làm bài — chuyển thẳng sang báo cáo
       const { data: fm } = await supabase
         .from('family_members')

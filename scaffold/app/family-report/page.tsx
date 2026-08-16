@@ -78,8 +78,8 @@ export default function FamilyReportPage() {
       </div>
       <h1>Báo cáo học tập</h1>
       {role === 'parent' && (
-        <p>
-          <a href="/add-child">➕ Thêm học sinh</a>
+        <p style={{ fontSize: 13, color: '#555' }}>
+          Muốn thêm con hoặc đổi khối lớp đang học, liên hệ trực tiếp để được hỗ trợ.
         </p>
       )}
       {error && <p style={{ color: '#900' }}>{error}</p>}
