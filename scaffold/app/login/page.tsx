@@ -53,6 +53,9 @@ export default function LoginPage() {
         </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      <p style={{ marginTop: 16 }}>
+        Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+      </p>
     </main>
   );
 }
