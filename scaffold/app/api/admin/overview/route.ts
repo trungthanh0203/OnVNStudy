@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const { accessToken } = body || {};
 
     const auth = await verifyAdmin(accessToken);
-    if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+    if (auth.ok === false) return NextResponse.json({ error: auth.error }, { status: auth.status });
     const { admin } = auth;
 
     const [familiesRes, membersRes, studentsRes, enrollmentsRes, gradesRes] = await Promise.all([
